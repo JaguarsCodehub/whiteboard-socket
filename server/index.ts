@@ -1,41 +1,34 @@
-import { createServer } from 'http';
-
+import { Socket } from 'socket.io';
+import http from 'http';
 import express from 'express';
-import next, { NextApiHandler } from 'next';
 import { Server } from 'socket.io';
 
-const port = parseInt(process.env.PORT || '3001', 10);
-const dev = process.env.NODE_ENV !== 'production';
-const nextApp = next({ dev });
-const nextHandler: NextApiHandler = nextApp.getRequestHandler();
+const app = express();
+const server = http.createServer(http);
 
-nextApp.prepare().then(async () => {
-  const app = express();
-  const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+  },
+});
 
-  const io = new Server<ClientToServerEvents, ServerToClientEvents>(server);
+app.get('/health', async (_, res) => {
+  res.send('Healthy');
+});
 
-  app.get('/health', async (_, res) => {
-    res.send('Healthy');
+io.on('connection', (socket: Socket) => {
+  console.log('connection');
+
+  socket.on('draw', (moves: unknown, options: unknown) => {
+    console.log('drawing');
+    socket.emit('socket_draw', moves, options);
   });
 
-  io.on('connection', (socket) => {
-    console.log('connection');
-
-    socket.on('draw', (moves, options) => {
-      console.log('drawing');
-      alert('drawing');
-      socket.broadcast.emit('socket_draw', moves, options);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Client Disconnected');
-    });
+  socket.on('disconnect', () => {
+    console.log('Client Disconnected');
   });
+});
 
-  app.all('*', (req: any, res: any) => nextHandler(req, res));
-
-  server.listen(port, () => {
-    console.log(`Server is running on port: ${port}`);
-  });
+server.listen(3001, () => {
+  console.log('server running at http://localhost:3001');
 });

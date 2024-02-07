@@ -25,7 +25,7 @@ export const useDraw = (
 
   const handleStartDrawing = (x: number, y: number) => {
     if (!ctx || blocked) return;
-
+    console.log(' drawing now ok');
     moves = [[x + movedX, y + movedY]];
     setDrawing(true);
 
@@ -57,5 +57,6 @@ export const useDraw = (
     handleEndDrawing,
     handleDraw,
     handleStartDrawing,
+    drawing,
   };
 };
